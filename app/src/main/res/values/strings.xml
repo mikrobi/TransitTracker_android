@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TransitTracker</string>
+    <string name="title_activity_map">Map</string>
+</resources>
