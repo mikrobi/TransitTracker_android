@@ -3,10 +3,14 @@ package de.jakobclass.transittracker
 import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.location.Location
 import android.support.v4.app.FragmentActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks
+import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -14,9 +18,10 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback {
+class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks {
 
     private var map: GoogleMap? = null
+    private var googleApiClient: GoogleApiClient? = null
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
@@ -26,6 +31,11 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_map)
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+    }
+
+    override fun onStop() {
+        googleApiClient?.disconnect()
+        super.onStop()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -64,6 +74,29 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback {
 
     private fun enableMyLocation() {
         map?.isMyLocationEnabled = true
+        if (googleApiClient == null) {
+            googleApiClient = GoogleApiClient.Builder(this)
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .build()
+        }
+        googleApiClient?.connect()
+    }
+
+    override fun onConnected(connectionHint: Bundle?) {
+        val lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient)
+        lastLocation?.let {
+            if (lastLocation.isInBerlinArea) {
+                val lastLocationLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+                map?.animateCamera(CameraUpdateFactory.newLatLng(lastLocationLatLng))
+            }
+        }
+    }
+
+    override fun onConnectionSuspended(cause: Int) {
+        // Nothing to do
     }
 
 }
+
+val Location.isInBerlinArea: Boolean get() = latitude < 52.833702 && latitude > 52.250741 && longitude < 13.948642 && longitude > 12.873355
