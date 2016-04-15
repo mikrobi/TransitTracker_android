@@ -3,6 +3,7 @@ package de.jakobclass.transittracker
 import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.location.Location
 import android.support.v4.app.FragmentActivity
 import android.os.Bundle
@@ -14,14 +15,20 @@ import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import de.jakobclass.transittracker.services.StopService
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks {
+class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener {
 
     private var map: GoogleMap? = null
+    private lateinit var mapFragment: SupportMapFragment
     private var googleApiClient: GoogleApiClient? = null
+    private var stopService = StopService()
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
@@ -29,7 +36,8 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+
         mapFragment.getMapAsync(this)
     }
 
@@ -40,7 +48,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks 
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
+        map!!.setOnCameraChangeListener(this)
         val berlinCityCenter = LatLng(52.520048, 13.404773)
         map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(berlinCityCenter, 16.0f))
         initLocationPermission()
@@ -97,6 +105,25 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks 
         // Nothing to do
     }
 
+    override fun onCameraChange(cameraPosition: CameraPosition?) {
+        fetchStops()
+    }
+
+    private fun fetchStops() {
+        var mapView = mapFragment.view
+        mapView?.let {
+            val mapWidth = mapView.width.toInt()
+            val mapHeight = mapView.height.toInt()
+            val mapX = mapView.x.toInt()
+            val mapY = mapView.y.toInt()
+            val northEastPoint = Point(mapX + 2 * mapWidth, mapY - mapHeight)
+            val southWestPoint = Point(mapX - mapWidth, mapY + 2 * mapHeight)
+            val northEast = map!!.projection.fromScreenLocation(northEastPoint)
+            val southWest = map!!.projection.fromScreenLocation(southWestPoint)
+            val boundingBox = LatLngBounds(southWest, northEast)
+            stopService.fetchStops(boundingBox)
+        }
+    }
 }
 
 val Location.isInBerlinArea: Boolean get() = latitude < 52.833702 && latitude > 52.250741 && longitude < 13.948642 && longitude > 12.873355
