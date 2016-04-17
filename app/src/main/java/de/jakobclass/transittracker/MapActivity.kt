@@ -30,7 +30,8 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     private var map: GoogleMap? = null
     private lateinit var mapFragment: SupportMapFragment
     private var googleApiClient: GoogleApiClient? = null
-    private var stopService = StopService()
+    private val stopService: StopService
+        get() = (application as Application).stopService
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
