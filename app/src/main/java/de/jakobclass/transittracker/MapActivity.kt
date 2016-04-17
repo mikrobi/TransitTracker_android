@@ -18,11 +18,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import de.jakobclass.transittracker.models.Stop
+import de.jakobclass.transittracker.factories.Bitmap
 import de.jakobclass.transittracker.services.StopService
 import de.jakobclass.transittracker.services.StopServiceDelegate
 
@@ -137,8 +135,12 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     override fun stopServiceDidAddStops(stops: List<Stop>) {
+        val screenDensity = getResources().getDisplayMetrics().density
         for (stop in stops) {
-            map?.addMarker(MarkerOptions().position(stop.coordinate).title(stop.name))
+            map?.addMarker(MarkerOptions()
+                    .position(stop.coordinate)
+                    .title(stop.name)
+                    .icon(BitmapDescriptorFactory.fromBitmap(Bitmap(stop, screenDensity))))
         }
     }
 }
