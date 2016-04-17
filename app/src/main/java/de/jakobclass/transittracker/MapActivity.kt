@@ -21,10 +21,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
+import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.services.StopService
+import de.jakobclass.transittracker.services.StopServiceDelegate
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener {
-
+class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener, StopServiceDelegate {
     private var map: GoogleMap? = null
     private lateinit var mapFragment: SupportMapFragment
     private var googleApiClient: GoogleApiClient? = null
@@ -35,15 +37,23 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_map)
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-
         mapFragment.getMapAsync(this)
+        stopService.delegate = this
     }
 
     override fun onStop() {
         googleApiClient?.disconnect()
+
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        stopService.delegate = null
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -122,6 +132,12 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
             val southWest = map!!.projection.fromScreenLocation(southWestPoint)
             val boundingBox = LatLngBounds(southWest, northEast)
             stopService.fetchStops(boundingBox)
+        }
+    }
+
+    override fun stopServiceDidAddStops(stops: List<Stop>) {
+        for (stop in stops) {
+            map?.addMarker(MarkerOptions().position(stop.coordinate).title(stop.name))
         }
     }
 }

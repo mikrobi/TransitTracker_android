@@ -6,9 +6,14 @@ import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.network.Api
 import java.util.*
 
+interface StopServiceDelegate {
+    fun stopServiceDidAddStops(stops: List<Stop>)
+}
+
 class StopService: StopParsingTaskDelegate {
-    var vehilceTypes = arrayOf(VehicleType.Bus, VehicleType.StreetCar, VehicleType.SuburbanTrain, VehicleType.Subway)
+    var delegate: StopServiceDelegate? = null
     override val stops: Map<String, Stop> get() = _stops
+    var vehilceTypes = arrayOf(VehicleType.Bus, VehicleType.StreetCar, VehicleType.SuburbanTrain, VehicleType.Subway)
 
     private val _stops = mutableMapOf<String, Stop>()
 
@@ -27,11 +32,14 @@ class StopService: StopParsingTaskDelegate {
     }
 
     override fun addStops(stops: List<Stop>) {
+        var addedStops = mutableListOf<Stop>()
         for (stop in stops) {
             if (!_stops.containsKey(stop.name)) {
                 _stops.set(stop.name, stop)
+                addedStops.add(stop)
             }
         }
+        delegate?.stopServiceDidAddStops(addedStops)
     }
 }
 
