@@ -2,6 +2,7 @@ package de.jakobclass.transittracker.services
 
 import android.os.AsyncTask
 import de.jakobclass.transittracker.models.Stop
+import de.jakobclass.transittracker.models.VehicleType
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -48,7 +49,15 @@ fun Stop(data: JSONArray): Stop? {
         val x = data.getInt(0)
         val y = data.getInt(1)
         val name = data.getString(3)
-        return Stop(LatLng(x = x, y = y), name)
+        val stop = Stop(LatLng(x = x, y = y), name)
+        val vehicleTypesData = data.getJSONArray(6)
+        val vehicleTypes = mutableListOf<VehicleType>()
+        for (i in 0..(vehicleTypesData.length() - 1)) {
+            val vehicleType = VehicleType.fromCode(vehicleTypesData.getInt(i))
+            vehicleType?.let { vehicleTypes.add(it) }
+        }
+        stop.vehicleTypes = vehicleTypes
+        return stop
     } catch (e: JSONException) {
         return null
     }
