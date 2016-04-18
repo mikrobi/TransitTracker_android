@@ -57,6 +57,7 @@ fun Stop(data: JSONArray): Stop? {
         val y = data.getInt(1)
         val name = data.getString(3)
         val stop = Stop(LatLng(x = x, y = y), name)
+
         val vehicleTypesData = data.getJSONArray(6)
         val vehicleTypes = mutableListOf<VehicleType>()
         for (i in 0..(vehicleTypesData.length() - 1)) {
@@ -64,6 +65,21 @@ fun Stop(data: JSONArray): Stop? {
             vehicleType?.let { vehicleTypes.add(it) }
         }
         stop.vehicleTypes = vehicleTypes
+
+        val linesData = data.getJSONArray(7)
+        val lines = mutableListOf<String>()
+        for (i in 0..(linesData.length() - 1)) {
+            val lineData = linesData.getJSONArray(i)
+            val vehicleTypeName = lineData.getString(0)
+            var name = lineData.getString(1)
+            val vehicleType = VehicleType.fromCode(lineData.getInt(2))
+            if (vehicleType == VehicleType.Bus) {
+                name = "$vehicleTypeName $name"
+            }
+            lines.add(name)
+        }
+        stop.lines = lines
+
         return stop
     } catch (e: JSONException) {
         return null

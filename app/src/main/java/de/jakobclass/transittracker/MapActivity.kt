@@ -140,6 +140,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
             map?.addMarker(MarkerOptions()
                     .position(stop.coordinate)
                     .title(stop.name)
+                    .snippet(stop.lines.joinToString(", "))
                     .icon(BitmapDescriptorFactory.fromBitmap(Bitmap(stop, screenDensity))))
         }
     }
