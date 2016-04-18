@@ -12,12 +12,14 @@ interface StopServiceDelegate {
 }
 
 class StopService: StopParsingTaskDelegate {
-    var delegate: StopServiceDelegate? = null
+    var delegateReference: WeakReference<StopServiceDelegate>? = null
     override val stops: Map<String, Stop> get() = _stops
     var vehilceTypes = arrayOf(VehicleType.Bus, VehicleType.StreetCar, VehicleType.SuburbanTrain, VehicleType.Subway)
 
     private val _stops = mutableMapOf<String, Stop>()
     private var aktiveStopParsingTask: StopParsingTask? = null
+    private val delegate: StopServiceDelegate?
+        get() = delegateReference?.get()
 
     fun fetchStops(boundingBox: LatLngBounds) {
         val vehicleTypesCode: Int = vehilceTypes.fold(0) { sum, vehicleType -> sum + vehicleType.code }
