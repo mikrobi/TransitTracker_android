@@ -58,6 +58,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map!!.setOnCameraChangeListener(this)
+        addMarkersForStops(stopService.stops.values)
         val berlinCityCenter = LatLng(52.520048, 13.404773)
         map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(berlinCityCenter, 16.0f))
         initLocationPermission()
@@ -135,6 +136,10 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     override fun stopServiceDidAddStops(stops: List<Stop>) {
+        addMarkersForStops(stops)
+    }
+
+    private fun addMarkersForStops(stops: Collection<Stop>) {
         val screenDensity = getResources().getDisplayMetrics().density
         for (stop in stops) {
             map?.addMarker(MarkerOptions()
