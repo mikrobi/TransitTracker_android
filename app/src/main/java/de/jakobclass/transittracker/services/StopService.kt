@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.network.Api
+import java.lang.ref.WeakReference
 import java.util.*
 
 interface StopServiceDelegate {
@@ -16,6 +17,7 @@ class StopService: StopParsingTaskDelegate {
     var vehilceTypes = arrayOf(VehicleType.Bus, VehicleType.StreetCar, VehicleType.SuburbanTrain, VehicleType.Subway)
 
     private val _stops = mutableMapOf<String, Stop>()
+    private var aktiveStopParsingTask: StopParsingTask? = null
 
     fun fetchStops(boundingBox: LatLngBounds) {
         val vehicleTypesCode: Int = vehilceTypes.fold(0) { sum, vehicleType -> sum + vehicleType.code }
@@ -26,8 +28,9 @@ class StopService: StopParsingTaskDelegate {
         parameters["look_nv"] = "get_shortjson|yes|get_lines|yes|combinemode|1|density|26|"
 
         Api.request(parameters) { data ->
-            val stopParsingTask = StopParsingTask(this)
-            stopParsingTask.execute(data)
+            aktiveStopParsingTask?.cancel(false)
+            aktiveStopParsingTask = StopParsingTask(WeakReference(this))
+            aktiveStopParsingTask!!.execute(data)
         }
     }
 
