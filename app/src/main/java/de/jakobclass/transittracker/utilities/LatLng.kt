@@ -1,4 +1,4 @@
-package de.jakobclass.transittracker.services
+package de.jakobclass.transittracker.utilities
 
 import com.google.android.gms.maps.model.LatLng
 

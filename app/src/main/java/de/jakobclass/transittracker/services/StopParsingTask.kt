@@ -3,6 +3,7 @@ package de.jakobclass.transittracker.services
 import android.os.AsyncTask
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.models.VehicleType
+import de.jakobclass.transittracker.utilities.LatLng
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

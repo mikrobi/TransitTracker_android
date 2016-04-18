@@ -4,6 +4,8 @@ import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.network.Api
+import de.jakobclass.transittracker.utilities.x
+import de.jakobclass.transittracker.utilities.y
 import java.lang.ref.WeakReference
 import java.util.*
 
