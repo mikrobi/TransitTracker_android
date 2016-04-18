@@ -20,7 +20,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import de.jakobclass.transittracker.models.Stop
-import de.jakobclass.transittracker.factories.Bitmap
+import de.jakobclass.transittracker.factories.BitmapFactory
 import de.jakobclass.transittracker.services.StopService
 import de.jakobclass.transittracker.services.StopServiceDelegate
 import java.lang.ref.WeakReference
@@ -137,11 +137,13 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     private fun addMarkersForStops(stops: Collection<Stop>) {
         val screenDensity = getResources().getDisplayMetrics().density
         for (stop in stops) {
+            val bitmap = BitmapFactory.bitmapForStop(stop, screenDensity)
+            val icon = BitmapDescriptorFactory.fromBitmap(bitmap)
             map?.addMarker(MarkerOptions()
                     .position(stop.coordinate)
                     .title(stop.name)
                     .snippet(stop.lines.joinToString(", "))
-                    .icon(BitmapDescriptorFactory.fromBitmap(Bitmap(stop, screenDensity))))
+                    .icon(icon))
         }
     }
 }
