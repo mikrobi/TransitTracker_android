@@ -15,10 +15,16 @@ interface StopParsingTaskDelegate {
     fun addStops(stops: List<Stop>)
 }
 
-class StopParsingTask(var delegateReference: WeakReference<StopParsingTaskDelegate>) : AsyncTask<JSONObject, Void, List<Stop>>() {
-
-    private val delegate: StopParsingTaskDelegate?
+class StopParsingTask(delegate: StopParsingTaskDelegate) : AsyncTask<JSONObject, Void, List<Stop>>() {
+    var delegate: StopParsingTaskDelegate?
         get() = delegateReference.get()
+        set(value) { delegateReference = WeakReference<StopParsingTaskDelegate>(value) }
+
+    private var delegateReference = WeakReference<StopParsingTaskDelegate>(null)
+
+    init {
+        this.delegate = delegate
+    }
 
     override fun doInBackground(vararg data: JSONObject?): List<Stop>? {
         var stops = mutableListOf<Stop>()

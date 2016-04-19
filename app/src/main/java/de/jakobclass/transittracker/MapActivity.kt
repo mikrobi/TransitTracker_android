@@ -23,7 +23,6 @@ import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.factories.BitmapFactory
 import de.jakobclass.transittracker.services.StopService
 import de.jakobclass.transittracker.services.StopServiceDelegate
-import java.lang.ref.WeakReference
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener, StopServiceDelegate {
     private var map: GoogleMap? = null
@@ -41,7 +40,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
         setContentView(R.layout.activity_map)
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        stopService.delegateReference = WeakReference(this)
+        stopService.delegate = this
     }
 
     override fun onStop() {
