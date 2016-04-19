@@ -1,4 +1,4 @@
-package de.jakobclass.transittracker.services
+package de.jakobclass.transittracker.services.stops
 
 import android.os.AsyncTask
 import de.jakobclass.transittracker.models.Stop
@@ -18,7 +18,8 @@ interface StopParsingTaskDelegate {
 class StopParsingTask(delegate: StopParsingTaskDelegate) : AsyncTask<JSONObject, Void, List<Stop>>() {
     var delegate: StopParsingTaskDelegate?
         get() = delegateReference.get()
-        set(value) { delegateReference = WeakReference<StopParsingTaskDelegate>(value) }
+        set(value) { delegateReference = WeakReference<StopParsingTaskDelegate>(value)
+        }
 
     private var delegateReference = WeakReference<StopParsingTaskDelegate>(null)
 

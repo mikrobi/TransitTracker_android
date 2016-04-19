@@ -1,4 +1,4 @@
-package de.jakobclass.transittracker.services
+package de.jakobclass.transittracker.services.stops
 
 import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Stop
@@ -16,16 +16,16 @@ interface StopServiceDelegate {
 class StopService: StopParsingTaskDelegate {
     var delegate: StopServiceDelegate?
         get() = delegateReference?.get()
-        set(value) { delegateReference = WeakReference<StopServiceDelegate>(value) }
+        set(value) { delegateReference = WeakReference<StopServiceDelegate>(value)
+        }
     override val stops: Map<String, Stop>
         get() = _stops
-    var vehilceTypes = arrayOf(VehicleType.Bus, VehicleType.StreetCar, VehicleType.SuburbanTrain, VehicleType.Subway)
 
     private val _stops = mutableMapOf<String, Stop>()
     private var aktiveStopParsingTask: StopParsingTask? = null
     private var delegateReference = WeakReference<StopServiceDelegate>(null)
 
-    fun fetchStops(boundingBox: LatLngBounds) {
+    fun fetchStops(boundingBox: LatLngBounds, vehilceTypes: List<VehicleType>) {
         val vehicleTypesCode: Int = vehilceTypes.fold(0) { sum, vehicleType -> sum + vehicleType.code }
         var parameters = boundingBox.asRequestParameters()
         parameters["look_stopclass"] = vehicleTypesCode

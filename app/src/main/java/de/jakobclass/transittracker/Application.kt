@@ -1,7 +1,7 @@
 package de.jakobclass.transittracker
 
-import de.jakobclass.transittracker.services.StopService
+import de.jakobclass.transittracker.services.ApiService
 
 class Application: android.app.Application() {
-    val stopService = StopService()
+    val apiService = ApiService()
 }

@@ -21,15 +21,15 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.factories.BitmapFactory
-import de.jakobclass.transittracker.services.StopService
-import de.jakobclass.transittracker.services.StopServiceDelegate
+import de.jakobclass.transittracker.services.ApiService
+import de.jakobclass.transittracker.services.ApiServiceDelegate
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener, StopServiceDelegate {
+class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener, ApiServiceDelegate {
     private var map: GoogleMap? = null
     private lateinit var mapFragment: SupportMapFragment
     private var googleApiClient: GoogleApiClient? = null
-    private val stopService: StopService
-        get() = (application as Application).stopService
+    private val apiService: ApiService
+        get() = (application as Application).apiService
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
@@ -40,7 +40,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
         setContentView(R.layout.activity_map)
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        stopService.delegate = this
+        apiService.delegate = this
     }
 
     override fun onStop() {
@@ -52,7 +52,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map!!.setOnCameraChangeListener(this)
-        addMarkersForStops(stopService.stops.values)
+        addMarkersForStops(apiService.stops)
         val berlinCityCenter = LatLng(52.520048, 13.404773)
         map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(berlinCityCenter, 16.0f))
         initLocationPermission()
@@ -110,10 +110,10 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     override fun onCameraChange(cameraPosition: CameraPosition?) {
-        fetchStops()
+        updateBoundingBox()
     }
 
-    private fun fetchStops() {
+    private fun updateBoundingBox() {
         var mapView = mapFragment.view
         mapView?.let {
             val mapWidth = mapView.width.toInt()
@@ -124,12 +124,11 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
             val southWestPoint = Point(mapX - mapWidth, mapY + 2 * mapHeight)
             val northEast = map!!.projection.fromScreenLocation(northEastPoint)
             val southWest = map!!.projection.fromScreenLocation(southWestPoint)
-            val boundingBox = LatLngBounds(southWest, northEast)
-            stopService.fetchStops(boundingBox)
+            apiService.boundingBox = LatLngBounds(southWest, northEast)
         }
     }
 
-    override fun stopServiceDidAddStops(stops: List<Stop>) {
+    override fun apiServiceDidAddStops(stops: List<Stop>) {
         addMarkersForStops(stops)
     }
 
