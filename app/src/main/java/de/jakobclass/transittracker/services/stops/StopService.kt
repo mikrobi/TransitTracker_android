@@ -2,12 +2,9 @@ package de.jakobclass.transittracker.services.stops
 
 import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Stop
-import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.network.Api
-import de.jakobclass.transittracker.utilities.x
-import de.jakobclass.transittracker.utilities.y
+import de.jakobclass.transittracker.services.asRequestParameters
 import java.lang.ref.WeakReference
-import java.util.*
 
 interface StopServiceDelegate {
     fun stopServiceDidAddStops(stops: List<Stop>)
@@ -15,7 +12,7 @@ interface StopServiceDelegate {
 
 class StopService: StopParsingTaskDelegate {
     var delegate: StopServiceDelegate?
-        get() = delegateReference?.get()
+        get() = delegateReference.get()
         set(value) { delegateReference = WeakReference<StopServiceDelegate>(value)
         }
     override val stops: Map<String, Stop>
@@ -25,8 +22,7 @@ class StopService: StopParsingTaskDelegate {
     private var aktiveStopParsingTask: StopParsingTask? = null
     private var delegateReference = WeakReference<StopServiceDelegate>(null)
 
-    fun fetchStops(boundingBox: LatLngBounds, vehilceTypes: List<VehicleType>) {
-        val vehicleTypesCode: Int = vehilceTypes.fold(0) { sum, vehicleType -> sum + vehicleType.code }
+    fun fetchStops(boundingBox: LatLngBounds, vehicleTypesCode: Int) {
         var parameters = boundingBox.asRequestParameters()
         parameters["look_stopclass"] = vehicleTypesCode
         parameters["tpl"] = "stop2shortjson"
@@ -51,11 +47,3 @@ class StopService: StopParsingTaskDelegate {
         delegate?.stopServiceDidAddStops(addedStops)
     }
 }
-
-fun LatLngBounds.asRequestParameters(): HashMap<String, Any> {
-    return hashMapOf("look_minx" to southwest.x,
-            "look_miny" to southwest.y,
-            "look_maxx" to  northeast.x,
-            "look_maxy" to northeast.y)
-}
-
