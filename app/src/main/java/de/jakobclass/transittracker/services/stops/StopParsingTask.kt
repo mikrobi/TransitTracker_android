@@ -29,9 +29,8 @@ class StopParsingTask(delegate: StopParsingTaskDelegate) : AsyncTask<JSONObject,
 
     override fun doInBackground(vararg data: JSONObject?): List<Stop>? {
         var stops = mutableListOf<Stop>()
-        val data = data.first()
-        data?.let {
-            val stopsData = data.getJSONArray("stops")
+        data.first()?.let {
+            val stopsData = it.getJSONArray("stops")
             if (stopsData.length() > 1) {
                 if (isCancelled) {
                     return null
@@ -44,10 +43,7 @@ class StopParsingTask(delegate: StopParsingTaskDelegate) : AsyncTask<JSONObject,
                     if (delegate?.stops?.containsKey(name) ?: false) {
                         continue
                     }
-                    val stop = Stop(stopData)
-                    stop?.let {
-                        stops.add(stop)
-                    }
+                    Stop(stopData)?.let { stops.add(it) }
                 }
             }
         }
