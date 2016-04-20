@@ -21,15 +21,19 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.factories.BitmapFactory
+import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.services.ApiService
 import de.jakobclass.transittracker.services.ApiServiceDelegate
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks, OnCameraChangeListener, ApiServiceDelegate {
-    private var map: GoogleMap? = null
-    private lateinit var mapFragment: SupportMapFragment
-    private var googleApiClient: GoogleApiClient? = null
+class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
+        OnCameraChangeListener, ApiServiceDelegate {
+
     private val apiService: ApiService
         get() = (application as Application).apiService
+    private var googleApiClient: GoogleApiClient? = null
+    private var map: GoogleMap? = null
+    private lateinit var mapFragment: SupportMapFragment
+    private val vehicleMarkers = mutableMapOf<Vehicle, Marker>()
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
@@ -142,6 +146,23 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
                     .title(stop.name)
                     .snippet(stop.lines.joinToString(", "))
                     .icon(icon))
+        }
+    }
+
+    override fun apiServiceDidAddVehicles(vehicles: Collection<Vehicle>) {
+        for (vehicle in vehicles) {
+            map?.addMarker(MarkerOptions()
+                    .position(vehicle.position.coordinate)
+                    .title(vehicle.name)
+                    .snippet(vehicle.destination))
+                    ?.let { vehicleMarkers[vehicle] = it }
+        }
+    }
+
+    override fun apiServiceDidRemoveVehicles(vehicles: Collection<Vehicle>) {
+        for (vehicle in vehicles) {
+            vehicleMarkers[vehicle]?.remove()
+            vehicleMarkers.remove(vehicle)
         }
     }
 }

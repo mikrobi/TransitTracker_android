@@ -5,12 +5,24 @@ import de.jakobclass.transittracker.models.Position
 import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.network.Api
 import de.jakobclass.transittracker.services.asRequestParameters
+import java.lang.ref.WeakReference
+
+interface VehicleServiceDelegate {
+    fun vehicleServiceDidAddVehicles(vehicles: Collection<Vehicle>)
+    fun vehicleServiceDidRemoveVehicles(vehicles: Collection<Vehicle>)
+}
 
 class VehicleService : VehicleParsingTaskDelegate {
+    var delegate: VehicleServiceDelegate?
+        get() = delegateReference.get()
+        set(value) {
+            delegateReference = WeakReference<VehicleServiceDelegate>(value)
+        }
     override val vehicles: Map<String, Vehicle>
         get() = _vehicles
 
     private var activeVehicleParsingTask: VehicleParsingTask? = null
+    private var delegateReference = WeakReference<VehicleServiceDelegate>(null)
     private var _vehicles = mutableMapOf<String, Vehicle>()
 
     fun fetchVehicles(boundingBox: LatLngBounds, vehicleTypesCode: Int, fetchInterval: Int, updateInterval: Int) {
@@ -29,6 +41,22 @@ class VehicleService : VehicleParsingTaskDelegate {
     }
 
     override fun addOrUpdateVehiclesAndPositions(vehiclesAndPositions: Map<Vehicle, List<Position>>) {
-
+        var addedVehicles = mutableSetOf<Vehicle>()
+        var updatedVehicles = mutableSetOf<Vehicle>()
+        for ((vehicle, positions) in vehiclesAndPositions) {
+            vehicle.predictedPositions = positions
+            if (_vehicles.containsKey(vehicle.vehicleId)) {
+                updatedVehicles.add(vehicle)
+            } else {
+                _vehicles[vehicle.vehicleId] = vehicle
+                addedVehicles.add(vehicle)
+            }
+        }
+        val removedVehicles = _vehicles.values.toSet().subtract(addedVehicles).subtract(updatedVehicles)
+        for (vehicle in removedVehicles) {
+            _vehicles.remove(vehicle.vehicleId)
+        }
+        delegate?.vehicleServiceDidAddVehicles(addedVehicles)
+        delegate?.vehicleServiceDidRemoveVehicles(removedVehicles)
     }
 }

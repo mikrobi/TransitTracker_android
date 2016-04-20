@@ -2,10 +2,12 @@ package de.jakobclass.transittracker.services
 
 import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Stop
+import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.services.stops.StopService
 import de.jakobclass.transittracker.services.stops.StopServiceDelegate
 import de.jakobclass.transittracker.services.vehicles.VehicleService
+import de.jakobclass.transittracker.services.vehicles.VehicleServiceDelegate
 import de.jakobclass.transittracker.utilities.x
 import de.jakobclass.transittracker.utilities.y
 import java.lang.ref.WeakReference
@@ -13,10 +15,14 @@ import java.util.*
 
 interface ApiServiceDelegate {
     fun apiServiceDidAddStops(stops: List<Stop>)
+    fun apiServiceDidAddVehicles(vehicles: Collection<Vehicle>)
+    fun apiServiceDidRemoveVehicles(vehicles: Collection<Vehicle>)
 }
 
 class ApiService(val stopService: StopService = StopService(),
-                 val vehicleService: VehicleService = VehicleService()): StopServiceDelegate {
+                 val vehicleService: VehicleService = VehicleService()):
+        StopServiceDelegate, VehicleServiceDelegate {
+
     var boundingBox: LatLngBounds? = null
         set(value) {
             field = value
@@ -42,6 +48,7 @@ class ApiService(val stopService: StopService = StopService(),
 
     init {
         stopService.delegate = this
+        vehicleService.delegate = this
     }
 
     private fun fetchStops() {
@@ -57,6 +64,14 @@ class ApiService(val stopService: StopService = StopService(),
 
     override fun stopServiceDidAddStops(stops: List<Stop>) {
         delegate?.apiServiceDidAddStops(stops)
+    }
+
+    override fun vehicleServiceDidAddVehicles(vehicles: Collection<Vehicle>) {
+        delegate?.apiServiceDidAddVehicles(vehicles)
+    }
+
+    override fun vehicleServiceDidRemoveVehicles(vehicles: Collection<Vehicle>) {
+        delegate?.apiServiceDidRemoveVehicles(vehicles)
     }
 }
 
