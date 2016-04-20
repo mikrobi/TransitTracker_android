@@ -133,7 +133,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     private fun addMarkersForStops(stops: Collection<Stop>) {
-        val screenDensity = getResources().getDisplayMetrics().density
+        val screenDensity = resources.displayMetrics.density
         for (stop in stops) {
             val bitmap = BitmapFactory.bitmapForStop(stop, screenDensity)
             val icon = BitmapDescriptorFactory.fromBitmap(bitmap)

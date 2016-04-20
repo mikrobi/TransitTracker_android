@@ -29,7 +29,7 @@ class ApiService(val stopService: StopService = StopService(),
         }
     val stops: Collection<Stop>
         get() = stopService.stops.values
-    var vehicleTypes = listOf<VehicleType>(VehicleType.Bus,
+    var vehicleTypes = listOf(VehicleType.Bus,
             VehicleType.StreetCar,
             VehicleType.SuburbanTrain,
             VehicleType.Subway)

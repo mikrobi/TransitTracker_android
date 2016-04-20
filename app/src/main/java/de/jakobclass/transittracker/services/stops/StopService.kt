@@ -40,7 +40,7 @@ class StopService: StopParsingTaskDelegate {
         var addedStops = mutableListOf<Stop>()
         for (stop in stops) {
             if (!_stops.containsKey(stop.name)) {
-                _stops.set(stop.name, stop)
+                _stops[stop.name] = stop
                 addedStops.add(stop)
             }
         }
