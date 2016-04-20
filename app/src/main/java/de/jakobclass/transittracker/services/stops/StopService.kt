@@ -19,7 +19,7 @@ class StopService: StopParsingTaskDelegate {
         get() = _stops
 
     private val _stops = mutableMapOf<String, Stop>()
-    private var aktiveStopParsingTask: StopParsingTask? = null
+    private var activeStopParsingTask: StopParsingTask? = null
     private var delegateReference = WeakReference<StopServiceDelegate>(null)
 
     fun fetchStops(boundingBox: LatLngBounds, vehicleTypesCode: Int) {
@@ -30,9 +30,9 @@ class StopService: StopParsingTaskDelegate {
         parameters["look_nv"] = "get_shortjson|yes|get_lines|yes|combinemode|1|density|26|"
 
         Api.request(parameters) { data ->
-            aktiveStopParsingTask?.cancel(false)
-            aktiveStopParsingTask = StopParsingTask(this)
-            aktiveStopParsingTask!!.execute(data)
+            activeStopParsingTask?.cancel(false)
+            activeStopParsingTask = StopParsingTask(this)
+            activeStopParsingTask!!.execute(data)
         }
     }
 
