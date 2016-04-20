@@ -6,6 +6,7 @@ import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.network.Api
 import de.jakobclass.transittracker.services.asRequestParameters
 import java.lang.ref.WeakReference
+import java.util.*
 
 interface VehicleServiceDelegate {
     fun vehicleServiceDidAddVehicles(vehicles: Collection<Vehicle>)
@@ -40,7 +41,7 @@ class VehicleService : VehicleParsingTaskDelegate {
         }
     }
 
-    override fun addOrUpdateVehiclesAndPositions(vehiclesAndPositions: Map<Vehicle, List<Position>>) {
+    override fun addOrUpdateVehiclesAndPositions(vehiclesAndPositions: Map<Vehicle, LinkedList<Position>>) {
         var addedVehicles = mutableSetOf<Vehicle>()
         var updatedVehicles = mutableSetOf<Vehicle>()
         for ((vehicle, positions) in vehiclesAndPositions) {
@@ -58,5 +59,12 @@ class VehicleService : VehicleParsingTaskDelegate {
         }
         delegate?.vehicleServiceDidAddVehicles(addedVehicles)
         delegate?.vehicleServiceDidRemoveVehicles(removedVehicles)
+        updateVehiclePositions()
+    }
+
+    fun updateVehiclePositions() {
+        for (vehicle in vehicles.values) {
+            vehicle.updatePosition()
+        }
     }
 }

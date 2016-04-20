@@ -9,14 +9,15 @@ import de.jakobclass.transittracker.utilities.let
 import org.json.JSONException
 import org.json.JSONObject
 import java.lang.ref.WeakReference
+import java.util.*
 
 interface VehicleParsingTaskDelegate {
     val vehicles: Map<String, Vehicle>
 
-    fun addOrUpdateVehiclesAndPositions(vehiclesAndPositions: Map<Vehicle, List<Position>>)
+    fun addOrUpdateVehiclesAndPositions(vehiclesAndPositions: Map<Vehicle, LinkedList<Position>>)
 }
 
-class VehicleParsingTask(delegate: VehicleParsingTaskDelegate): AsyncTask<JSONObject, Void, Map<Vehicle, List<Position>>>() {
+class VehicleParsingTask(delegate: VehicleParsingTaskDelegate): AsyncTask<JSONObject, Void, Map<Vehicle, LinkedList<Position>>>() {
     var delegate: VehicleParsingTaskDelegate?
         get() = delegateReference.get()
         set(value) { delegateReference = WeakReference<VehicleParsingTaskDelegate>(value)
@@ -28,16 +29,16 @@ class VehicleParsingTask(delegate: VehicleParsingTaskDelegate): AsyncTask<JSONOb
         this.delegate = delegate
     }
 
-    override fun doInBackground(vararg data: JSONObject?): Map<Vehicle, List<Position>>? {
+    override fun doInBackground(vararg data: JSONObject?): Map<Vehicle, LinkedList<Position>>? {
         return data.first()?.let { parseVehiclePositionsFromJSON(it) }
     }
 
-    override fun onPostExecute(vehiclesAndPositions: Map<Vehicle, List<Position>>?) {
+    override fun onPostExecute(vehiclesAndPositions: Map<Vehicle, LinkedList<Position>>?) {
         vehiclesAndPositions?.let { delegate?.addOrUpdateVehiclesAndPositions(it) }
     }
 
-    private fun parseVehiclePositionsFromJSON(data: JSONObject): Map<Vehicle, List<Position>>? {
-        var vehiclePositions = mutableMapOf<Vehicle, List<Position>>()
+    private fun parseVehiclePositionsFromJSON(data: JSONObject): Map<Vehicle, LinkedList<Position>>? {
+        var vehiclePositions = mutableMapOf<Vehicle, LinkedList<Position>>()
         val vehiclesData = data.getJSONArray("t")
         for (i in 0..(vehiclesData.length() - 1)) {
             if (isCancelled) {
@@ -56,9 +57,9 @@ class VehicleParsingTask(delegate: VehicleParsingTaskDelegate): AsyncTask<JSONOb
         return delegate?.vehicles?.get(vehicleId) ?: Vehicle(vehicleId, data)
     }
 
-    private fun getPositionsFromJSON(data: JSONObject): List<Position> {
+    private fun getPositionsFromJSON(data: JSONObject): LinkedList<Position> {
         val positionsData = data.getJSONArray("p")
-        val positions = mutableListOf<Position>()
+        val positions = LinkedList<Position>()
         for (i in 0..(positionsData.length() - 1)) {
             val positionData = positionsData.getJSONObject(i)
             Position(positionData)?.let { positions.add(it) }

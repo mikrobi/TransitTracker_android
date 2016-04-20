@@ -22,11 +22,12 @@ import com.google.android.gms.maps.model.*
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.factories.BitmapFactory
 import de.jakobclass.transittracker.models.Vehicle
+import de.jakobclass.transittracker.models.VehicleDelegate
 import de.jakobclass.transittracker.services.ApiService
 import de.jakobclass.transittracker.services.ApiServiceDelegate
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
-        OnCameraChangeListener, ApiServiceDelegate {
+        OnCameraChangeListener, ApiServiceDelegate, VehicleDelegate {
 
     private val apiService: ApiService
         get() = (application as Application).apiService
@@ -151,6 +152,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
 
     override fun apiServiceDidAddVehicles(vehicles: Collection<Vehicle>) {
         for (vehicle in vehicles) {
+            vehicle.delegate = this
             map?.addMarker(MarkerOptions()
                     .position(vehicle.position.coordinate)
                     .title(vehicle.name)
@@ -164,6 +166,10 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
             vehicleMarkers[vehicle]?.remove()
             vehicleMarkers.remove(vehicle)
         }
+    }
+
+    override fun onVehiclePositionUpdate(vehicle: Vehicle) {
+        vehicleMarkers[vehicle]?.let { it.position = vehicle.position.coordinate }
     }
 }
 
