@@ -41,8 +41,6 @@ class ApiService(val stopService: StopService = StopService(),
             VehicleType.Subway)
 
     private var delegateReference = WeakReference<ApiServiceDelegate>(null)
-    private val vehicleFetchIntervalInMS: Int = 20000
-    private val vehiclePositionUpdateIntervalInMS: Int = 2000
     private val vehicleTypesCode: Int
         get() = vehicleTypes.fold(0) { sum, vehicleType -> sum + vehicleType.code }
 
@@ -57,8 +55,7 @@ class ApiService(val stopService: StopService = StopService(),
 
     private fun fetchVehicles() {
         boundingBox?.let {
-            vehicleService.fetchVehicles(it, vehicleTypesCode,
-                    vehicleFetchIntervalInMS, vehiclePositionUpdateIntervalInMS)
+            vehicleService.fetchVehicles(it, vehicleTypesCode)
         }
     }
 

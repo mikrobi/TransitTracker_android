@@ -75,7 +75,7 @@ fun Vehicle(vehicleId: String, data: JSONObject): Vehicle? {
         return let(vehicleType, position) { vehicleType, position ->
             val name = data.getString("n").trim()
             val destination = data.getString("l")
-            return@let  Vehicle(vehicleId, vehicleType, name, destination, position)
+            return@let Vehicle(vehicleId, vehicleType, name, destination, position)
         }
     } catch (e: JSONException) {
         return null

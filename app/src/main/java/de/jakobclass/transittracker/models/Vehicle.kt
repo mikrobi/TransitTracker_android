@@ -30,7 +30,7 @@ data class Vehicle private constructor(val vehicleId: String, val type: VehicleT
 
     constructor(vehicleId: String, type: VehicleType, name: String, destination: String,
                 position: Position): this(vehicleId, type, name, destination) {
-        this.position = position
+        this._position = position
     }
 
     fun updatePosition() {

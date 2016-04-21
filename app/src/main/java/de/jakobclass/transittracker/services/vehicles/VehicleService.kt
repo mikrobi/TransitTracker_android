@@ -1,5 +1,7 @@
 package de.jakobclass.transittracker.services.vehicles
 
+import android.os.Handler
+import android.os.Looper
 import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Position
 import de.jakobclass.transittracker.models.Vehicle
@@ -24,20 +26,39 @@ class VehicleService : VehicleParsingTaskDelegate {
 
     private var activeVehicleParsingTask: VehicleParsingTask? = null
     private var delegateReference = WeakReference<VehicleServiceDelegate>(null)
+    private val fetchIntervalInMS: Int = 20000
+    private val mainThreadHandler = Handler(Looper.getMainLooper())
+    private var positionUpdateRunnable: Runnable? = null
+    private val positionUpdateIntervalInMS: Int = 2000
     private var _vehicles = mutableMapOf<String, Vehicle>()
 
-    fun fetchVehicles(boundingBox: LatLngBounds, vehicleTypesCode: Int, fetchInterval: Int, updateInterval: Int) {
+    fun fetchVehicles(boundingBox: LatLngBounds, vehicleTypesCode: Int) {
         var parameters = boundingBox.asRequestParameters()
         parameters["look_productclass"] = vehicleTypesCode
         parameters["look_json"] = "yes"
         parameters["tpl"] = "trains2json2"
         parameters["performLocating"] = 1
-        parameters["look_nv"] = "zugposmode|2|interval|$fetchInterval|intervalstep|$updateInterval|"
+        parameters["look_nv"] = "zugposmode|2|interval|$fetchIntervalInMS|intervalstep|$positionUpdateIntervalInMS|"
 
         Api.request(parameters) { data ->
             activeVehicleParsingTask?.cancel(false)
             activeVehicleParsingTask = VehicleParsingTask(this)
             activeVehicleParsingTask!!.execute(data)
+        }
+    }
+
+    private fun startPeriodicVehiclePositionUpdates() {
+        mainThreadHandler.removeCallbacks(positionUpdateRunnable)
+        positionUpdateRunnable = Runnable {
+            updateVehiclePositions()
+            mainThreadHandler.postDelayed(positionUpdateRunnable!!, positionUpdateIntervalInMS.toLong())
+        }
+        positionUpdateRunnable!!.run()
+    }
+
+    private fun updateVehiclePositions() {
+        for (vehicle in vehicles.values) {
+            vehicle.updatePosition()
         }
     }
 
@@ -59,12 +80,6 @@ class VehicleService : VehicleParsingTaskDelegate {
         }
         delegate?.vehicleServiceDidAddVehicles(addedVehicles)
         delegate?.vehicleServiceDidRemoveVehicles(removedVehicles)
-        updateVehiclePositions()
-    }
-
-    fun updateVehiclePositions() {
-        for (vehicle in vehicles.values) {
-            vehicle.updatePosition()
-        }
+        startPeriodicVehiclePositionUpdates()
     }
 }
