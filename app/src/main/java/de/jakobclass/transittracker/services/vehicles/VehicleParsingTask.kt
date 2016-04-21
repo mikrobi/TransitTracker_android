@@ -86,7 +86,11 @@ fun Position(data: JSONObject): Position? {
     try {
         val x = data.getInt("x")
         val y = data.getInt("y")
-        return Position(LatLng(x, y), data.getInt("d"))
+        var direction: Int? = null
+        if (data.has("d")) {
+            direction = data.getInt("d")
+        }
+        return Position(LatLng(x, y), direction)
     } catch (e: JSONException) {
         return null
     }
