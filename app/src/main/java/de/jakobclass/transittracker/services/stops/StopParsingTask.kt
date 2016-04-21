@@ -75,12 +75,12 @@ fun Stop(data: JSONArray): Stop? {
         for (i in 0..(linesData.length() - 1)) {
             val lineData = linesData.getJSONArray(i)
             val vehicleTypeName = lineData.getString(0)
-            var name = lineData.getString(1)
+            var lineName = lineData.getString(1)
             val vehicleType = VehicleType.fromCode(lineData.getInt(2))
             if (vehicleType == VehicleType.Bus) {
-                name = "$vehicleTypeName $name"
+                lineName = "$vehicleTypeName $lineName"
             }
-            lines.add(name)
+            lines.add(lineName)
         }
         stop.lines = lines
 
