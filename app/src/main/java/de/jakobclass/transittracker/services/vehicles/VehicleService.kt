@@ -27,6 +27,7 @@ class VehicleService : VehicleParsingTaskDelegate {
         set(value) {
             delegateReference = WeakReference<VehicleServiceDelegate>(value)
         }
+    val positionUpdateIntervalInMS: Int = 2000
     override val vehicles: Map<String, Vehicle>
         get() = _vehicles
     var vehicleTypesCode: Int = 0
@@ -36,7 +37,6 @@ class VehicleService : VehicleParsingTaskDelegate {
     private val fetchIntervalInMS: Int = 20000
     private var fetchRunnable: Runnable? = null
     private val mainThreadHandler = Handler(Looper.getMainLooper())
-    private val positionUpdateIntervalInMS: Int = 2000
     private var positionUpdateRunnable: Runnable? = null
     private var _vehicles = mutableMapOf<String, Vehicle>()
 

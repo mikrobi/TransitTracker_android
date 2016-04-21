@@ -33,6 +33,8 @@ class ApiService(val stopService: StopService = StopService(),
         get() = delegateReference.get()
         set(value) { delegateReference = WeakReference<ApiServiceDelegate>(value)
         }
+    val positionUpdateIntervalInMS: Int
+        get() = vehicleService.positionUpdateIntervalInMS
     val stops: Collection<Stop>
         get() = stopService.stops.values
     var vehicleTypes: Collection<VehicleType> = listOf<VehicleType>()

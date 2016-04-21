@@ -1,6 +1,7 @@
 package de.jakobclass.transittracker
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.graphics.Point
@@ -9,6 +10,7 @@ import android.support.v4.app.FragmentActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Property
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks
 import com.google.android.gms.location.LocationServices
@@ -19,6 +21,7 @@ import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import de.jakobclass.transittracker.animation.LatLngTypeEvaluator
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.factories.BitmapFactory
 import de.jakobclass.transittracker.models.Vehicle
@@ -169,7 +172,13 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     override fun onVehiclePositionUpdate(vehicle: Vehicle) {
-        vehicleMarkers[vehicle]?.let { it.position = vehicle.position.coordinate }
+        vehicleMarkers[vehicle]?.let {
+            val property = Property.of(Marker::class.java, LatLng::class.java, "position");
+            val animator = ObjectAnimator.ofObject(it, property, LatLngTypeEvaluator(), vehicle.position.coordinate)
+            animator.duration = apiService.positionUpdateIntervalInMS.toLong()
+            animator.interpolator = null
+            animator.start()
+        }
     }
 }
 
