@@ -41,6 +41,8 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
+    private val screenDensity: Float
+        get() = resources.displayMetrics.density
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,7 +143,6 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     }
 
     private fun addMarkersForStops(stops: Collection<Stop>) {
-        val screenDensity = resources.displayMetrics.density
         for (stop in stops) {
             val bitmap = BitmapFactory.bitmapForStop(stop, screenDensity)
             val icon = BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -156,10 +157,13 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     override fun apiServiceDidAddVehicles(vehicles: Collection<Vehicle>) {
         for (vehicle in vehicles) {
             vehicle.delegate = this
+            val bitmap = BitmapFactory.bitmapForVehicle(vehicle, screenDensity)
+            val icon = BitmapDescriptorFactory.fromBitmap(bitmap)
             map?.addMarker(MarkerOptions()
                     .position(vehicle.position.coordinate)
                     .title(vehicle.name)
-                    .snippet(vehicle.destination))
+                    .snippet(vehicle.destination)
+                    .icon(icon))
                     ?.let { vehicleMarkers[vehicle] = it }
         }
     }
@@ -173,6 +177,9 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
 
     override fun onVehiclePositionUpdate(vehicle: Vehicle) {
         vehicleMarkers[vehicle]?.let {
+            val bitmap = BitmapFactory.bitmapForVehicle(vehicle, screenDensity)
+            val icon = BitmapDescriptorFactory.fromBitmap(bitmap)
+            it.setIcon(icon)
             val property = Property.of(Marker::class.java, LatLng::class.java, "position");
             val animator = ObjectAnimator.ofObject(it, property, LatLngTypeEvaluator(), vehicle.position.coordinate)
             animator.duration = apiService.positionUpdateIntervalInMS.toLong()
