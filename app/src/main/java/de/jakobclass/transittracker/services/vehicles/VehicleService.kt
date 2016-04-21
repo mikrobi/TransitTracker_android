@@ -5,6 +5,7 @@ import android.os.Looper
 import com.google.android.gms.maps.model.LatLngBounds
 import de.jakobclass.transittracker.models.Position
 import de.jakobclass.transittracker.models.Vehicle
+import de.jakobclass.transittracker.models.VehicleType
 import de.jakobclass.transittracker.network.Api
 import de.jakobclass.transittracker.services.asRequestParameters
 import java.lang.ref.WeakReference
@@ -16,6 +17,11 @@ interface VehicleServiceDelegate {
 }
 
 class VehicleService : VehicleParsingTaskDelegate {
+    var boundingBox: LatLngBounds? = null
+        set(value) {
+            field = value
+            startPeriodicFetchRunnable()
+        }
     var delegate: VehicleServiceDelegate?
         get() = delegateReference.get()
         set(value) {
@@ -23,31 +29,44 @@ class VehicleService : VehicleParsingTaskDelegate {
         }
     override val vehicles: Map<String, Vehicle>
         get() = _vehicles
+    var vehicleTypesCode: Int = 0
 
     private var activeVehicleParsingTask: VehicleParsingTask? = null
     private var delegateReference = WeakReference<VehicleServiceDelegate>(null)
     private val fetchIntervalInMS: Int = 20000
+    private var fetchRunnable: Runnable? = null
     private val mainThreadHandler = Handler(Looper.getMainLooper())
-    private var positionUpdateRunnable: Runnable? = null
     private val positionUpdateIntervalInMS: Int = 2000
+    private var positionUpdateRunnable: Runnable? = null
     private var _vehicles = mutableMapOf<String, Vehicle>()
 
-    fun fetchVehicles(boundingBox: LatLngBounds, vehicleTypesCode: Int) {
-        var parameters = boundingBox.asRequestParameters()
-        parameters["look_productclass"] = vehicleTypesCode
-        parameters["look_json"] = "yes"
-        parameters["tpl"] = "trains2json2"
-        parameters["performLocating"] = 1
-        parameters["look_nv"] = "zugposmode|2|interval|$fetchIntervalInMS|intervalstep|$positionUpdateIntervalInMS|"
+    private fun startPeriodicFetchRunnable() {
+        mainThreadHandler.removeCallbacks(fetchRunnable)
+        fetchRunnable = Runnable {
+            fetchVehicles()
+            mainThreadHandler.postDelayed(fetchRunnable!!, fetchIntervalInMS.toLong())
+        }
+        fetchRunnable!!.run()
+    }
 
-        Api.request(parameters) { data ->
-            activeVehicleParsingTask?.cancel(false)
-            activeVehicleParsingTask = VehicleParsingTask(this)
-            activeVehicleParsingTask!!.execute(data)
+    private fun fetchVehicles() {
+        boundingBox?.let {
+            var parameters = it.asRequestParameters()
+            parameters["look_productclass"] = vehicleTypesCode
+            parameters["look_json"] = "yes"
+            parameters["tpl"] = "trains2json2"
+            parameters["performLocating"] = 1
+            parameters["look_nv"] = "zugposmode|2|interval|$fetchIntervalInMS|intervalstep|$positionUpdateIntervalInMS|"
+
+            Api.request(parameters) { data ->
+                activeVehicleParsingTask?.cancel(false)
+                activeVehicleParsingTask = VehicleParsingTask(this)
+                activeVehicleParsingTask!!.execute(data)
+            }
         }
     }
 
-    private fun startPeriodicVehiclePositionUpdates() {
+    private fun startPeriodicPositionUpdateRunnable() {
         mainThreadHandler.removeCallbacks(positionUpdateRunnable)
         positionUpdateRunnable = Runnable {
             updateVehiclePositions()
@@ -80,6 +99,6 @@ class VehicleService : VehicleParsingTaskDelegate {
         }
         delegate?.vehicleServiceDidAddVehicles(addedVehicles)
         delegate?.vehicleServiceDidRemoveVehicles(removedVehicles)
-        startPeriodicVehiclePositionUpdates()
+        startPeriodicPositionUpdateRunnable()
     }
 }

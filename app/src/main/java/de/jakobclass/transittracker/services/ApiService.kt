@@ -26,8 +26,8 @@ class ApiService(val stopService: StopService = StopService(),
     var boundingBox: LatLngBounds? = null
         set(value) {
             field = value
+            vehicleService.boundingBox = value
             fetchStops()
-            fetchVehicles()
         }
     var delegate: ApiServiceDelegate?
         get() = delegateReference.get()
@@ -35,10 +35,11 @@ class ApiService(val stopService: StopService = StopService(),
         }
     val stops: Collection<Stop>
         get() = stopService.stops.values
-    var vehicleTypes = listOf(VehicleType.Bus,
-            VehicleType.StreetCar,
-            VehicleType.SuburbanTrain,
-            VehicleType.Subway)
+    var vehicleTypes: Collection<VehicleType> = listOf<VehicleType>()
+        set(value) {
+            field = value
+            vehicleService.vehicleTypesCode = vehicleTypesCode
+        }
 
     private var delegateReference = WeakReference<ApiServiceDelegate>(null)
     private val vehicleTypesCode: Int
@@ -47,16 +48,12 @@ class ApiService(val stopService: StopService = StopService(),
     init {
         stopService.delegate = this
         vehicleService.delegate = this
+        vehicleTypes = listOf(VehicleType.Bus, VehicleType.StreetCar,
+                VehicleType.SuburbanTrain, VehicleType.Subway)
     }
 
     private fun fetchStops() {
         boundingBox?.let { stopService.fetchStops(it, vehicleTypesCode) }
-    }
-
-    private fun fetchVehicles() {
-        boundingBox?.let {
-            vehicleService.fetchVehicles(it, vehicleTypesCode)
-        }
     }
 
     override fun stopServiceDidAddStops(stops: List<Stop>) {
