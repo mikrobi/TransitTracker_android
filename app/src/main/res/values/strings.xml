@@ -2,6 +2,5 @@
     <string name="app_name">TransitTracker</string>
     <string name="cancel">Cancel</string>
     <string name="location_usage_description">This app uses location services to show your current position on the map.</string>
-    <string name="ok">Ok</string>
-    <string name="title_activity_map">Map</string>
+    <string name="ok">OK</string>
 </resources>
