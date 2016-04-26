@@ -1,9 +1,11 @@
 package de.jakobclass.transittracker.services
 
 import com.google.android.gms.maps.model.LatLngBounds
+import de.jakobclass.transittracker.models.Route
 import de.jakobclass.transittracker.models.Stop
 import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.models.VehicleType
+import de.jakobclass.transittracker.services.routes.RouteService
 import de.jakobclass.transittracker.services.stops.StopService
 import de.jakobclass.transittracker.services.stops.StopServiceDelegate
 import de.jakobclass.transittracker.services.vehicles.VehicleService
@@ -19,7 +21,8 @@ interface ApiServiceDelegate {
     fun apiServiceDidRemoveVehicles(vehicles: Collection<Vehicle>)
 }
 
-class ApiService(val stopService: StopService = StopService(),
+class ApiService(val routeService: RouteService = RouteService(),
+                 val stopService: StopService = StopService(),
                  val vehicleService: VehicleService = VehicleService()):
         StopServiceDelegate, VehicleServiceDelegate {
 
@@ -56,6 +59,10 @@ class ApiService(val stopService: StopService = StopService(),
 
     private fun fetchStops() {
         boundingBox?.let { stopService.fetchStops(it, vehicleTypesCode) }
+    }
+
+    fun fetchRouteAndStops(vehicle: Vehicle, completion: (route: Route?) -> Unit) {
+        routeService.fetchRouteAndStops(vehicle, completion)
     }
 
     override fun stopServiceDidAddStops(stops: List<Stop>) {

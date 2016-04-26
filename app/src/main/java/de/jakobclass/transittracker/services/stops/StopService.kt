@@ -29,7 +29,7 @@ class StopService: StopParsingTaskDelegate {
         parameters["performLocating"] = 2
         parameters["look_nv"] = "get_shortjson|yes|get_lines|yes|combinemode|1|density|26|"
 
-        Api.request(parameters) { data ->
+        Api.requestJSONObject(parameters) { data ->
             activeStopParsingTask?.cancel(false)
             activeStopParsingTask = StopParsingTask(this)
             activeStopParsingTask!!.execute(data)

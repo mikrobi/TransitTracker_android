@@ -24,6 +24,7 @@ data class Vehicle private constructor(val vehicleId: String, val type: VehicleT
             }
         }
     var predictedPositions = LinkedList<Position>()
+    var route: Route? = null
 
     private var delegateReference = WeakReference<VehicleDelegate>(null)
     private lateinit var _position: Position

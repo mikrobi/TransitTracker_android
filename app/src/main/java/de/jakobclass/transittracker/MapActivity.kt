@@ -28,16 +28,17 @@ import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.models.VehicleDelegate
 import de.jakobclass.transittracker.services.ApiService
 import de.jakobclass.transittracker.services.ApiServiceDelegate
+import de.jakobclass.transittracker.utilities.BiMap
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
-        OnCameraChangeListener, ApiServiceDelegate, VehicleDelegate {
-
+        OnCameraChangeListener, GoogleMap.OnMarkerClickListener,
+        ApiServiceDelegate, VehicleDelegate {
     private val apiService: ApiService
         get() = (application as Application).apiService
     private var googleApiClient: GoogleApiClient? = null
     private var map: GoogleMap? = null
     private lateinit var mapFragment: SupportMapFragment
-    private val vehicleMarkers = mutableMapOf<Vehicle, Marker>()
+    private val vehicleMarkers = BiMap<Vehicle, Marker>()
 
     private val REQUEST_CODE_ACCESS_FINE_LOCATION = 1
     private val REQUIRED_LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
@@ -62,6 +63,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map!!.setOnCameraChangeListener(this)
+        map!!.setOnMarkerClickListener(this)
         addMarkersForStops(apiService.stops)
         val berlinCityCenter = LatLng(52.520048, 13.404773)
         map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(berlinCityCenter, 16.0f))
@@ -170,8 +172,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
 
     override fun apiServiceDidRemoveVehicles(vehicles: Collection<Vehicle>) {
         for (vehicle in vehicles) {
-            vehicleMarkers[vehicle]?.remove()
-            vehicleMarkers.remove(vehicle)
+            vehicleMarkers.remove(vehicle)?.remove()
         }
     }
 
@@ -186,6 +187,18 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
             animator.interpolator = null
             animator.start()
         }
+    }
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        marker?.let {
+            vehicleMarkers.getKey(it)?.let {
+                apiService.fetchRouteAndStops(it) { route ->
+                    //TODO show route on map
+                }
+            }
+        }
+
+        return false
     }
 }
 

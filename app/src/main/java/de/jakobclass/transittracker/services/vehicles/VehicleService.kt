@@ -58,7 +58,7 @@ class VehicleService : VehicleParsingTaskDelegate {
             parameters["performLocating"] = 1
             parameters["look_nv"] = "zugposmode|2|interval|$fetchIntervalInMS|intervalstep|$positionUpdateIntervalInMS|"
 
-            Api.request(parameters) { data ->
+            Api.requestJSONObject(parameters) { data ->
                 activeVehicleParsingTask?.cancel(false)
                 activeVehicleParsingTask = VehicleParsingTask(this)
                 activeVehicleParsingTask!!.execute(data)
