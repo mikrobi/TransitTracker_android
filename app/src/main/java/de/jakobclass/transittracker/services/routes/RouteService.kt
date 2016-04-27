@@ -5,7 +5,7 @@ import de.jakobclass.transittracker.models.Vehicle
 import de.jakobclass.transittracker.network.Api
 
 class RouteService {
-    fun fetchRouteAndStops(vehicle: Vehicle, completion: (route: Route?) -> Unit) {
+    fun fetchRouteAndStops(vehicle: Vehicle, completion: (route: Route) -> Unit) {
         val parameters = mapOf<String, Any>(
                 "look_trainid" to vehicle.vehicleId,
                 "tpl" to  "chain2json3",
@@ -16,7 +16,8 @@ class RouteService {
             completion(route)
         } else {
             Api.requestJSONArray(parameters) { data ->
-                //TODO parse route
+                val parsingTask = RouteParsingTask(vehicle , completion)
+                parsingTask.execute(data)
             }
         }
     }

@@ -1,4 +1,6 @@
 package de.jakobclass.transittracker.models
 
-data class Route(val vehicleType: VehicleType, val stops: Collection<Stop>) {
+import com.google.android.gms.maps.model.LatLng
+
+data class Route(val coordinates: Collection<LatLng>, val stops: Collection<Stop>, val vehicleType: VehicleType) {
 }

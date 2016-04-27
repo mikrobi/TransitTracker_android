@@ -61,7 +61,7 @@ class ApiService(val routeService: RouteService = RouteService(),
         boundingBox?.let { stopService.fetchStops(it, vehicleTypesCode) }
     }
 
-    fun fetchRouteAndStops(vehicle: Vehicle, completion: (route: Route?) -> Unit) {
+    fun fetchRouteAndStops(vehicle: Vehicle, completion: (route: Route) -> Unit) {
         routeService.fetchRouteAndStops(vehicle, completion)
     }
 
