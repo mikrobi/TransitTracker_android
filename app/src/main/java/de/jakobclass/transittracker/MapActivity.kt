@@ -31,11 +31,12 @@ import de.jakobclass.transittracker.services.ApiServiceDelegate
 import de.jakobclass.transittracker.utilities.BiMap
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
-        OnCameraChangeListener, GoogleMap.OnMarkerClickListener,
+        OnCameraChangeListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener,
         ApiServiceDelegate, VehicleDelegate {
     private val apiService: ApiService
         get() = (application as Application).apiService
     private var googleApiClient: GoogleApiClient? = null
+    private var highlightedRoute: Polyline? = null
     private var map: GoogleMap? = null
     private lateinit var mapFragment: SupportMapFragment
     private val vehicleMarkers = BiMap<Vehicle, Marker>()
@@ -64,6 +65,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
         map = googleMap
         map!!.setOnCameraChangeListener(this)
         map!!.setOnMarkerClickListener(this)
+        map!!.setOnMapClickListener(this)
         addMarkersForStops(apiService.stops)
         val berlinCityCenter = LatLng(52.520048, 13.404773)
         map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(berlinCityCenter, 16.0f))
@@ -193,12 +195,22 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
         marker?.let {
             vehicleMarkers.getKey(it)?.let {
                 apiService.fetchRouteAndStops(it) { route ->
-                    //TODO show route on map
+                    highlightedRoute?.remove()
+                    val options = PolylineOptions()
+                            .addAll(route.coordinates)
+                            .color(route.vehicleType.color)
+                            .width(6.0f * screenDensity)
+                    highlightedRoute = map?.addPolyline(options)
                 }
             }
         }
 
         return false
+    }
+
+    override fun onMapClick(coordinate: LatLng?) {
+        highlightedRoute?.remove()
+        highlightedRoute = null
     }
 }
 
