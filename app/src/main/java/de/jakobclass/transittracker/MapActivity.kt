@@ -167,7 +167,8 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, ConnectionCallbacks,
                     .position(vehicle.position.coordinate)
                     .title(vehicle.name)
                     .snippet(vehicle.destination)
-                    .icon(icon))
+                    .icon(icon)
+                    .anchor(0.5f, 0.5f))
                     ?.let { vehicleMarkers[vehicle] = it }
         }
     }
